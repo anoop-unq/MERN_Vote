@@ -1,5 +1,5 @@
 import express from 'express'
-import {  changeUserData, getUserById, login, logout, register, resetOtp, resetPassword, searchUsers, sendOtp, updateProfile, updateProfilePhoto, userAuthenticate, verifyEmail, verifyOtp } from '../controllers/userController.js'
+import {  changeUserData, getUserById, login, logout, register, resetOtp, resetPassword,  sendOtp, updateProfile, updateProfilePhoto, userAuthenticate, verifyEmail, verifyOtp } from '../controllers/userController.js'
 import {  userAuthMiddleware } from '../middileware/userAuth.js'
 import { handleMulterErrorsImage, uploadImage } from '../middlewares/imageUploader.js'
 const route = express.Router()

@@ -2,7 +2,46 @@
 import Poll from '../models/Poll.js';
 import Vote from '../models/Vote.js';
 
-// Create a new poll
+// // Create a new poll
+// export const createPoll = async (req, res) => {
+//   try {
+//     const { question, options, isPublished } = req.body;
+//     const userId = req.user._id;
+
+//     if (!question || !options || options.length < 2) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Poll must have a question and at least two options"
+//       });
+//     }
+
+//     const poll = new Poll({
+//       question,
+//       options: options.map(option => ({ text: option })),
+//       createdBy: userId,
+//       isPublished: isPublished || false
+//     });
+
+//     await poll.save();
+    
+//     // Populate creator details
+//     await poll.populate('createdBy', 'name email photo');
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Poll created successfully",
+//       poll
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Error creating poll",
+//       error: error.message
+//     });
+//   }
+// };
+
+
 export const createPoll = async (req, res) => {
   try {
     const { question, options, isPublished } = req.body;
@@ -23,6 +62,13 @@ export const createPoll = async (req, res) => {
     });
 
     await poll.save();
+    
+    // Add the poll to the user's polls array
+    await userModel.findByIdAndUpdate(
+      userId,
+      { $push: { polls: poll._id } },
+      { new: true }
+    );
     
     // Populate creator details
     await poll.populate('createdBy', 'name email photo');
@@ -321,65 +367,6 @@ export const updatePoll = async (req, res) => {
 }
 
 
-
-// Get single poll by ID
-// export const getPollById = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-    
-//     const poll = await Poll.findById(id)
-//       .populate('createdBy', 'name email photo')
-//       .populate('options.votes', 'user')
-        
-
-//     if (!poll) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Poll not found"
-//       });
-//     }
-
-//     // Calculate vote counts for each option
-//     const pollWithVotes = {
-//       ...poll.toObject(),
-//       options: poll.options.map(option => ({
-//         ...option,
-//         voteCount: option.votes.length
-//       }))
-//     };
-//     //  return poll.toObject();
-    
-//     res.status(200).json({
-//       success: true,
-//       poll: pollWithVotes
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Error fetching poll",
-//       error: error.message
-//     });
-//   }
-// };
-
-// // In your backend poll controller
-// export const getPollById = async (req, res) => {
-//   try {
-//     const poll = await Poll.findById(req.params.id)
-//       .populate('createdBy', 'name email photo')
-//       .populate('options.votes', 'name email') // Populate votes with user info
-//       .lean(); // Convert to plain JavaScript object
-
-//     if (!poll) {
-//       return res.status(404).json({ success: false, message: 'Poll not found' });
-//     }
-
-//     res.status(200).json({ success: true, poll });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
 export const getPollById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -535,36 +522,7 @@ export const voteOnPoll = async (req, res) => {
   }
 };
 
-// Get user's polls
-// export const getUserPolls = async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const { page = 1, limit = 10 } = req.query;
-//     const skip = (page - 1) * limit;
 
-//     const polls = await Poll.find({ createdBy: userId })
-//       .populate('createdBy', 'name email photo')
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(parseInt(limit));
-
-//     const totalPolls = await Poll.countDocuments({ createdBy: userId });
-
-//     res.status(200).json({
-//       success: true,
-//       polls,
-//       currentPage: parseInt(page),
-//       totalPages: Math.ceil(totalPolls / limit),
-//       totalPolls
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Error fetching user polls",
-//       error: error.message
-//     });
-//   }
-// };
 
 export const getUserPolls = async (req, res) => {
   try {
@@ -614,6 +572,48 @@ export const getUserPolls = async (req, res) => {
 };
 
 // Delete a poll
+// export const deletePoll = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const userId = req.user._id;
+
+//     const poll = await Poll.findById(id);
+    
+//     if (!poll) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Poll not found"
+//       });
+//     }
+
+//     // Check if user owns the poll
+//     if (poll.createdBy.toString() !== userId.toString()) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "You can only delete your own polls"
+//       });
+//     }
+
+//     // Delete all votes associated with this poll
+//     await Vote.deleteMany({ poll: id });
+    
+//     // Delete the poll
+//     await Poll.findByIdAndDelete(id);
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Poll deleted successfully"
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Error deleting poll",
+//       error: error.message
+//     });
+//   }
+// };
+
+
 export const deletePoll = async (req, res) => {
   try {
     const { id } = req.params;
@@ -638,6 +638,13 @@ export const deletePoll = async (req, res) => {
 
     // Delete all votes associated with this poll
     await Vote.deleteMany({ poll: id });
+    
+    // Remove the poll from the user's polls array
+    await userModel.findByIdAndUpdate(
+      userId,
+      { $pull: { polls: id } },
+      { new: true }
+    );
     
     // Delete the poll
     await Poll.findByIdAndDelete(id);
@@ -680,3 +687,75 @@ export const getVoters = async (req,res)=>{
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+
+// In your pollController.js
+export const getUserProfileWithPolls = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Get user details
+    const user = await userModel.findById(userId)
+      .select('-password -verifyOtp -resetOtp -verifyOtpExpiresAt -resetOtpExpiresAt');
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found!" 
+      });
+    }
+
+    // Get user's polls
+    const polls = await Poll.find({ createdBy: userId })
+      .populate('createdBy', 'name email photo')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Calculate vote counts for each poll
+    const pollsWithVoteCounts = await Promise.all(polls.map(async (poll) => {
+      const pollObj = poll.toObject();
+      
+      // Get vote counts for each option
+      const voteCounts = await Vote.aggregate([
+        { $match: { poll: poll._id } },
+        { $group: { _id: '$option', count: { $sum: 1 } } }
+      ]);
+
+      const optionsWithVotes = pollObj.options.map(option => {
+        const voteCount = voteCounts.find(vc => vc._id.toString() === option._id.toString())?.count || 0;
+        return {
+          ...option,
+          voteCount: voteCount
+        };
+      });
+
+      const totalVotes = optionsWithVotes.reduce((sum, option) => sum + option.voteCount, 0);
+
+      return {
+        ...pollObj,
+        options: optionsWithVotes,
+        totalVotes: totalVotes
+      };
+    }));
+
+    const totalPolls = await Poll.countDocuments({ createdBy: userId });
+
+    res.status(200).json({
+      success: true,
+      user: user,
+      polls: pollsWithVoteCounts,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalPolls / limit),
+      totalPolls
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user profile with polls",
+      error: error.message
+    });
+  }
+};

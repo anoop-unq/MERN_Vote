@@ -283,7 +283,6 @@ export const userAuthenticate = async (req, res) => {
   }
 };
 
-// send reset OTP !
 export const resetOtp = async(req,res)=>{
     const {email} = req.body;
     if(!email){
@@ -392,60 +391,6 @@ export const getUserData = async(req,res)=>{
 }
 
 
-// Without asyncHandler - manual try-catch approach
-export const searchUsers = async (req, res) => {
-  try {
-    const { query, page = 1, limit = 10 } = req.query;
-    
-    if (!query || query.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required"
-      });
-    }
-
-    const searchQuery = query.trim();
-    const nameRegex = new RegExp(searchQuery, 'i');
-    const skip = (page - 1) * limit;
-    
-    const users = await userModel
-      .find({
-        _id: { $ne: req.userId },
-        name: nameRegex,
-        isAccountActive: true
-      })
-      .select('name photo bio isAccountVerified')
-      .skip(skip)
-      .limit(parseInt(limit))
-      .sort({ name: 1 });
-
-    const totalCount = await userModel.countDocuments({
-      _id: { $ne: req.userId },
-      name: nameRegex,
-      isAccountActive: true
-    });
-
-    res.json({
-      success: true,
-      users,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(totalCount / limit),
-        totalUsers: totalCount,
-        hasNext: page < Math.ceil(totalCount / limit),
-        hasPrev: page > 1
-      }
-    });
-  } catch (error) {
-    console.error("Search error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error during search"
-    });
-  }
-};
-
-
 
 export const getUserById = async (req, res) => {
   try {
@@ -531,107 +476,6 @@ export const changeUserData = async (req, res) => {
 
 
 
-// export const updateProfile = async (req, res) => {
-//   try {
-//     const { name, bio } = req.body;
-//     const { userId: paramUserId } = req.params; // Rename to avoid confusion
-//     const requestingUserId = req.userId; // From auth middleware
-    
-//     console.log('Update profile request details:', {
-//       paramUserId,
-//       requestingUserId,
-//       name,
-//       bio
-//     });
-
-//     // Validate input
-//     if (!mongoose.Types.ObjectId.isValid(paramUserId)) {
-//       return res.status(400).json({ 
-//         success: false, 
-//         message: 'Invalid user ID format' 
-//       });
-//     }
-
-//     // Verify authorization
-//     if (requestingUserId !== paramUserId) {
-//       return res.status(403).json({ 
-//         success: false, 
-//         message: 'Unauthorized to update this profile' 
-//       });
-//     }
-
-//     // Validate at least one field is provided
-//     if (!name && !bio) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'At least one field (name or bio) must be provided'
-//       });
-//     }
-
-//     // Validate name length if provided
-//     if (name && name.length > 50) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Name must be 50 characters or less'
-//       });
-//     }
-
-//     // Validate bio length if provided
-//     if (bio && bio.length > 200) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Bio must be 200 characters or less'
-//       });
-//     }
-
-//     // Prepare update object
-//     const updateFields = {};
-//     if (name) updateFields.name = name;
-//     if (bio) updateFields.bio = bio;
-
-//     // Update the user
-//     const updatedUser = await userModel.findByIdAndUpdate(
-//       paramUserId,
-//       updateFields,
-//       { 
-//         new: true, 
-//         runValidators: true 
-//       }
-//     ).select('-password');
-
-//     if (!updatedUser) {
-//       return res.status(404).json({ 
-//         success: false, 
-//         message: 'User not found' 
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       message: 'Profile updated successfully',
-//       user: updatedUser
-//     });
-
-//   } catch (error) {
-//     console.error('Error in updateProfile:', error);
-    
-//     // Handle specific validation errors
-//     if (error.name === 'ValidationError') {
-//       return res.status(400).json({
-//         success: false,
-//         message: error.message
-//       });
-//     }
-
-//     return res.status(500).json({ 
-//       success: false, 
-//       message: error.message || 'Internal server error'
-//     });
-//   }
-// };
-
-
-// New controller for photo updates
 
 export const updateProfile = async (req, res) => {
   try {
@@ -1023,7 +867,6 @@ export const updateProfilePhoto = async (req, res) => {
 
 
 
-// controllers/postController.js
 // export const deletePostImage = async (req, res) => {
 //   try {
 //     const post = await Post.findById(req.params.id);

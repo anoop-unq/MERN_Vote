@@ -1,3 +1,4 @@
+
 // import mongoose from "mongoose";
 
 // const userSchema = new mongoose.Schema({
@@ -64,10 +65,6 @@
 //         type: Date,
 //         default: null
 //     },
-//     posts: [{
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Post" 
-//     }],
 //     resetOtp: {
 //         type: String,
 //         default: ""
@@ -75,11 +72,84 @@
 //     resetOtpExpiresAt: {
 //         type: Number,
 //         default: 0
+//     },
+//     // New fields added below
+//     portfolioUrl: {
+//         type: String,
+//         trim: true,
+//         validate: {
+//             validator: function(v) {
+//                 if (!v) return true;
+//                 return /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(v);
+//             },
+//             message: 'Please enter a valid URL'
+//         }
+//     },
+//     education: [{
+//         institution: {
+//             type: String,
+//             trim: true,
+//             maxlength: 100
+//         },
+//         degree: {
+//             type: String,
+//             trim: true,
+//             maxlength: 100
+//         },
+//         fieldOfStudy: {
+//             type: String,
+//             trim: true,
+//             maxlength: 100
+//         },
+//         startYear: {
+//             type: Number,
+//             min: 1950,
+//             max: new Date().getFullYear()
+//         },
+//         endYear: {
+//             type: Number,
+//             min: 1950,
+//             max: new Date().getFullYear() + 10
+//         },
+//         description: {
+//             type: String,
+//             trim: true,
+//             maxlength: 300
+//         }
+//     }],
+//     address: {
+//         street: {
+//             type: String,
+//             trim: true,
+//             maxlength: 200
+//         },
+//         city: {
+//             type: String,
+//             trim: true,
+//             maxlength: 50
+//         },
+//         state: {
+//             type: String,
+//             trim: true,
+//             maxlength: 50
+//         },
+//         country: {
+//             type: String,
+//             trim: true,
+//             maxlength: 50
+//         },
+//         zipCode: {
+//             type: String,
+//             trim: true,
+//             maxlength: 20
+//         }
 //     }
 // }, { timestamps: true });
 
 // const userModel = mongoose.model('User', userSchema);
 // export default userModel;
+
+
 
 
 import mongoose from "mongoose";
@@ -100,7 +170,7 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     photo: {
-        type: String, // This will store the Cloudinary URL
+        type: String,
         default: ""
     },
     bio: {
@@ -113,7 +183,6 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate: {
             validator: function(v) {
-                // Only validate if mobile is provided
                 if (!v) return true;
                 return /^\d{10}$/.test(v);
             },
@@ -148,10 +217,6 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-    posts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post" 
-    }],
     resetOtp: {
         type: String,
         default: ""
@@ -160,7 +225,6 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // New fields added below
     portfolioUrl: {
         type: String,
         trim: true,
@@ -230,7 +294,12 @@ const userSchema = new mongoose.Schema({
             trim: true,
             maxlength: 20
         }
-    }
+    },
+    // Add this field to store references to polls created by the user
+    polls: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Poll"
+    }]
 }, { timestamps: true });
 
 const userModel = mongoose.model('User', userSchema);
