@@ -15,6 +15,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import { PollContext } from '../context/PollContext';
 import Navbar from '../pages/Navbar';
+import LoadingSpinner from '../pages/LoadingSpinner';
 
 // Register ChartJS components
 ChartJS.register(
@@ -52,7 +53,7 @@ const PollChart = () => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading poll data...</div>;
+    return <LoadingSpinner />
   }
 
   if (!poll) {

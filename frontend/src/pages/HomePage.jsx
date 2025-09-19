@@ -1,5 +1,5 @@
-import React, { use, useContext, useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { PollContext } from '../context/PollContext';
 import { assets } from '../assets/assets';
@@ -7,25 +7,31 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
   FaUser, FaSignOutAlt, FaEnvelope, FaChevronDown, FaCheckCircle, 
-  FaFilePdf, FaDownload, FaSearch, FaUserTie, FaNetworkWired, 
-  FaChartLine, FaStar, FaPlus, FaChartBar, FaEye, FaUsers 
+  FaPlus, FaChartBar, FaEye, FaUsers, FaShare, FaLock, 
+  FaPoll, FaChartPie, FaVoteYea, FaArrowRight, FaRocket,
+  FaLightbulb, FaShieldAlt, FaGlobe, FaBell
 } from 'react-icons/fa';
+import LoadingSpinner from './LoadingSpinner';
 
 const HomePage = () => {
   const { islogged, userdata, backendUrl, setIsLogged, setUserData } = useContext(AppContext);
   const { polls, isLoading, fetchPolls } = useContext(PollContext);
   const navigate = useNavigate();
-  const location = useLocation();
   
-  // States for Navbar
   const [isScrolled, setIsScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  
-  // States for Header
   const [isNewUser, setIsNewUser] = useState(false);
   const [isReturningUser, setIsReturningUser] = useState(false);
+  const [isSpinnerVisible, setIsSpinnerVisible] = useState(true);
 
-  // Navbar functions
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSpinnerVisible(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const logout = async () => {
     try {
       axios.defaults.withCredentials = true;
@@ -41,7 +47,6 @@ const HomePage = () => {
     }
   };
 
- 
   const sendVerificationOtp = async () => {
     try {
       axios.defaults.withCredentials = true;
@@ -57,7 +62,6 @@ const HomePage = () => {
     }
   };
 
-  // Navbar scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -66,7 +70,6 @@ const HomePage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showMenu && !event.target.closest('.user-menu-container')) {
@@ -78,7 +81,6 @@ const HomePage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMenu]);
 
-  // Header user status effect
   useEffect(() => {
     const justSignedUp = localStorage.getItem('justSignedUp') === 'true';
     const justLoggedIn = localStorage.getItem('justLoggedIn') === 'true';
@@ -92,31 +94,23 @@ const HomePage = () => {
     }
   }, [userdata]);
 
-  // Fetch polls
   useEffect(() => {
     fetchPolls(1, 6);
   }, []);
 
-  // Show loading state if data is being fetched
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+  if (isLoading && isSpinnerVisible) {
+    return <LoadingSpinner />;
   }
-//  console.log(user,"Null")
-  console.log(userdata,"org")
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out ${
         isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' 
-          : 'bg-transparent py-4'
+          ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' 
+          : 'bg-transparent py-5'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo */}
           <div 
             className="flex items-center cursor-pointer group"
             onClick={() => navigate("/")}
@@ -124,19 +118,16 @@ const HomePage = () => {
             <img
               src={assets.logo}
               alt="Logo"
-              className={`h-9 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`}
+              className={`h-10 transition-all duration-300 ${isScrolled ? 'scale-95' : 'scale-100'}`}
             />
-           
           </div>
 
-          {/* User controls */}
           {userdata ? (
             <div className="relative user-menu-container">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="flex items-center gap-2 bg-white/0 rounded-full pl-1 pr-2 py-1 transition-all hover:bg-white/10"
+                className="flex items-center gap-2 bg-white/0 rounded-full pl-1 pr-3 py-1 transition-all hover:bg-white/10"
               >
-                {/* User profile image/avatar */}
                 <div className="relative">
                   {userdata.user?.photo ? (
                    <Link to={`/user-profile/${userdata.user?._id}`}>
@@ -162,7 +153,6 @@ const HomePage = () => {
                 <FaChevronDown className={`text-gray-600 transition-transform duration-300 ${showMenu ? 'transform rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown menu */}
               {showMenu && (
                 <div className="absolute right-0 mt-3 w-64 origin-top-right bg-white rounded-xl shadow-xl ring-1 ring-gray-200 focus:outline-none overflow-hidden animate-fadeIn">
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b">
@@ -245,13 +235,12 @@ const HomePage = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center pt-16">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center pt-20">
         <div className="absolute top-10 right-10 w-72 h-72 bg-blue-200/20 rounded-full filter blur-3xl"></div>
         <div className="absolute bottom-10 left-10 w-80 h-80 bg-indigo-200/20 rounded-full filter blur-3xl"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
             <div className="space-y-8 text-center lg:text-left">
               <h4 className="text-2xl sm:text-3xl font-semibold text-gray-800">
                 {userdata?.user?.isGuest ? "Welcome, Guest!" : 
@@ -278,31 +267,31 @@ const HomePage = () => {
                   <>
                     <button
                       onClick={() => navigate("/signup")}
-                      className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center"
                     >
-                      Create Account
+                      Create Account <FaRocket className="ml-2" />
                     </button>
                     <button
                       onClick={() => navigate("/login")}
-                      className="px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50"
+                      className="px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50 flex items-center"
                     >
-                      Sign In
+                      Sign In <FaArrowRight className="ml-2" />
                     </button>
                   </>
                 ) : (
                   <>
                     <button
                       onClick={() => navigate(userdata ? "/polls/create" : "/signup")}
-                      className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center"
                     >
-                      {userdata ? "Create Poll" : "Get Started - Free"}
+                      {userdata ? "Create Poll" : "Get Started - Free"} <FaPlus className="ml-2" />
                     </button>
                     {!userdata && (
                       <button
                         onClick={() => navigate("/login")}
-                        className="px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50"
+                        className="px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50 flex items-center"
                       >
-                        Existing User? Login
+                        Existing User? Login <FaArrowRight className="ml-2" />
                       </button>
                     )}
                   </>
@@ -310,13 +299,13 @@ const HomePage = () => {
               </div>
             </div>
 
-            {/* Right Image */}
             <div className="flex justify-center items-center relative">
               <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl opacity-20 blur-lg"></div>
                 <img
                   src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
                   alt="Polling platform"
-                  className="w-full max-w-md xl:max-w-lg rounded-2xl shadow-2xl border-4 border-white"
+                  className="w-full max-w-md xl:max-w-lg rounded-2xl shadow-2xl border-4 border-white relative z-10"
                 />
               </div>
             </div>
@@ -367,11 +356,11 @@ const HomePage = () => {
                 desc: "Prevent duplicate votes and ensure poll integrity"
               }
             ].map((feature, index) => (
-              <div key={index} className="bg-gray-50 p-6 rounded-xl hover:shadow-md transition-shadow duration-300">
-                <div className="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm mb-4">
+              <div key={index} className="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center justify-center w-14 h-14 bg-blue-50 rounded-xl shadow-sm mb-6">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
                 <p className="text-gray-600">{feature.desc}</p>
               </div>
             ))}
@@ -381,11 +370,10 @@ const HomePage = () => {
 
       {/* Polls Section - Different content based on login status */}
       {islogged ? (
-        /* Content for logged in users */
         <>
           {/* Recent Polls Section */}
           {polls && polls.length > 0 && (
-            <div className="py-16 bg-gray-50">
+            <div className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-12">
                   <h2 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Recent Polls</h2>
@@ -397,24 +385,33 @@ const HomePage = () => {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {polls.slice(0, 3).map(poll => {
                     const totalVotes = poll.options?.reduce((sum, option) => {
                       return sum + (option.votes?.length || 0);
                     }, 0) || 0;
                     
                     return (
-                      <div key={poll._id} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">{poll.question}</h3>
-                        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                          <span>{poll.options.length} options</span>
-                          <span>{totalVotes} votes</span>
+                      <div key={poll._id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <div className="flex items-center mb-4">
+                          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg mr-3">
+                            <FaPoll className="text-blue-600" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">{poll.question}</h3>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-gray-600 mb-6">
+                          <span className="flex items-center">
+                            <FaChartPie className="mr-1" /> {poll.options.length} options
+                          </span>
+                          <span className="flex items-center">
+                            <FaVoteYea className="mr-1" /> {totalVotes} votes
+                          </span>
                         </div>
                         <Link
                           to={`/polls/${poll._id}`}
                           className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
                         >
-                          View Poll <FaChevronDown className="ml-1 transform rotate-270" />
+                          View Poll <FaArrowRight className="ml-2" />
                         </Link>
                       </div>
                     );
@@ -459,12 +456,12 @@ const HomePage = () => {
                   <Link
                     key={index}
                     to={item.link}
-                    className="bg-gray-50 p-6 rounded-xl text-center hover:shadow-md transition-shadow duration-300 group"
+                    className="bg-white p-8 rounded-2xl text-center border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
                   >
-                    <div className="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm mb-4 mx-auto">
+                    <div className="flex items-center justify-center w-14 h-14 bg-blue-50 rounded-xl shadow-sm mb-6 mx-auto">
                       {item.icon}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{item.title}</h3>
                     <p className="text-gray-600">{item.desc}</p>
                   </Link>
                 ))}
@@ -473,7 +470,6 @@ const HomePage = () => {
           </div>
         </>
       ) : (
-        /* Content for logged out users */
         <div className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Start Polling?</h2>
@@ -484,19 +480,23 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               {[
                 {
-                  stat: "1000+",
+                  icon: <FaUsers className="text-blue-600 text-3xl mb-2" />,
+                  stat: "100+",
                   label: "Active Users"
                 },
                 {
+                  icon: <FaPoll className="text-green-600 text-3xl mb-2" />,
                   stat: "500+",
                   label: "Polls Created"
                 },
                 {
-                  stat: "10000+",
+                  icon: <FaVoteYea className="text-purple-600 text-3xl mb-2" />,
+                  stat: "1000+",
                   label: "Votes Cast"
                 }
               ].map((item, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-md">
+                <div key={index} className="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg">
+                  {item.icon}
                   <div className="text-3xl font-bold text-blue-600 mb-2">{item.stat}</div>
                   <div className="text-gray-600">{item.label}</div>
                 </div>
@@ -506,39 +506,22 @@ const HomePage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => navigate("/signup")}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center mx-auto sm:mx-0"
               >
-                Sign Up Now
+                Sign Up Now <FaRocket className="ml-2" />
               </button>
               <Link
-              to={'/poll'}
-
-                className="px-8 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50"
+                to={'/poll'}
+                className="px-8 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:bg-gray-50 transform hover:-translate-y-0.5 flex items-center mx-auto sm:mx-0"
               >
-                Browse Public Polls
+                Browse Public Polls <FaArrowRight className="ml-2" />
               </Link>
             </div>
           </div>
         </div>
       )}
-
-      {/* CTA Section */}
-   
     </div>
   );
 };
-
-// Add missing icon components
-const FaShare = ({ className }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
-  </svg>
-);
-
-const FaLock = ({ className }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-  </svg>
-);
 
 export default HomePage;

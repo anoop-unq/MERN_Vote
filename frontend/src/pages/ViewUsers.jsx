@@ -8,12 +8,14 @@ import {
   FaUser
 } from 'react-icons/fa';
 import Navbar from './Navbar';
+import { PollContext } from '../context/PollContext';
 
 const ViewUsers = () => {
   const { userId } = useParams();
   console.log(userId)
   const navigate = useNavigate();
   const { getUserById } = useContext(AppContext);
+  const {polls} = useContext(PollContext)
   const [showDetails, setShowDetails] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
   const [showEducation, setShowEducation] = useState(false);
@@ -29,7 +31,7 @@ const ViewUsers = () => {
       setIsLoading(false);
     }
   }, [userId]);
-
+  console.log(polls,"Polls")
   const fetchUserDetails = async () => {
     setIsLoading(true);
     setIsLoadingDetails(true);

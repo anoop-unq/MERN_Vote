@@ -151,6 +151,9 @@
 
 // export { PollContext };
 // context/PollContext.jsx
+
+
+
 import { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -166,29 +169,6 @@ export const PollProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { islogged } = useContext(AppContext);
 
-  // Fetch all polls (public)
-  // const fetchPolls = async (page = 1, limit = 10) => {
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await axios.get(`${backendUrl}/api/poll/polls`, {
-  //       params: { page, limit }
-  //     });
-
-  //     if (response.data.success) {
-  //       setPolls(response.data.polls);
-  //       return {
-  //         polls: response.data.polls,
-  //         currentPage: response.data.currentPage,
-  //         totalPages: response.data.totalPages,
-  //         totalPolls: response.data.totalPolls
-  //       };
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || 'Failed to fetch polls');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const fetchPolls = async (page = 1, limit = 10) => {
   try {
@@ -275,25 +255,6 @@ const editPoll = async (pollId, updatedData) => {
   }
 };
 
-  // Fetch user's polls (protected)
-  // const fetchMyPolls = async () => {
-  //   if (!islogged) return;
-    
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await axios.get(`${backendUrl}/api/poll/user/polls`, {
-  //       withCredentials: true
-  //     });
-
-  //     if (response.data.success) {
-  //       setMyPolls(response.data.polls);
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || 'Failed to fetch your polls');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const fetchMyPolls = async () => {
   if (!islogged) return;
@@ -362,42 +323,6 @@ const editPoll = async (pollId, updatedData) => {
     }
   };
 
-  // Get a single poll
-
-  // const fetchPollById = async (pollId) => {
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await axios.get(`${backendUrl}/api/poll/polls/${pollId}`);
-
-  //     if (response.data.success) {
-  //       return response.data.poll;
-  //     }
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || 'Failed to fetch poll');
-  //     throw error;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-
-//   const fetchPollById = async (pollId) => {
-//   try {
-//     setIsLoading(true);
-//     const response = await axios.get(`${backendUrl}/api/poll/polls/${pollId}`);
-
-//     if (response.data.success) {
-//       // Convert Mongoose document to plain object
-//       const poll = JSON.parse(JSON.stringify(response.data.poll));
-//       return poll;
-//     }
-//   } catch (error) {
-//     toast.error(error.response?.data?.message || 'Failed to fetch poll');
-//     throw error;
-//   } finally {
-//     setIsLoading(false);
-//   }
-// };
 
 
 const fetchPollById = async (pollId) => {
@@ -417,7 +342,34 @@ const fetchPollById = async (pollId) => {
     setIsLoading(false);
   }
 };
+// Add this function to your PollContext
+const getUserWithPolls = async (userId, page = 1, limit = 10) => {
+  try {
+    setIsLoading(true);
+    const response = await axios.get(
+      `${backendUrl}/api/poll/${userId}/profile-with-polls`,
+      {
+        params: { page, limit },
+        withCredentials: true
+      }
+    );
 
+    if (response.data.success) {
+      return {
+        user: response.data.user,
+        polls: response.data.polls,
+        currentPage: response.data.currentPage,
+        totalPages: response.data.totalPages,
+        totalPolls: response.data.totalPolls
+      };
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Failed to fetch user profile with polls');
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Delete a poll
   const deletePoll = async (pollId) => {
@@ -448,6 +400,7 @@ const fetchPollById = async (pollId) => {
       voteOnPoll,
       fetchPollById,
       deletePoll,
+      getUserWithPolls,
       fetchVotersForPoll
     }}>
       {children}
